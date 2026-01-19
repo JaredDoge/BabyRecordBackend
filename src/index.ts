@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import caregiverRoutes from './routes/caregivers'
@@ -15,7 +15,7 @@ app.use(express.json())
 app.use('/api/caregivers', caregiverRoutes)
 app.use('/api/records', recordRoutes)
 
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' })
 })
 

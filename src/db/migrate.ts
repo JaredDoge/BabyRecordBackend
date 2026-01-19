@@ -5,10 +5,8 @@ dotenv.config()
 
 async function migrate() {
   try {
-    const connection = await pool.getConnection()
-    
     // Create caregivers table
-    await connection.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS caregivers (
         caregiver_id INT AUTO_INCREMENT PRIMARY KEY,
         caregiver_name VARCHAR(255) NOT NULL UNIQUE,
@@ -17,7 +15,7 @@ async function migrate() {
     `)
 
     // Create records table
-    await connection.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS records (
         record_id INT AUTO_INCREMENT PRIMARY KEY,
         caregiver_id INT NOT NULL,
@@ -31,7 +29,6 @@ async function migrate() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `)
 
-    connection.release()
     console.log('Migration completed successfully')
     process.exit(0)
   } catch (error) {
