@@ -4,6 +4,18 @@ import type { RowDataPacket, ResultSetHeader } from 'mysql2/promise'
 
 const router = express.Router()
 
+// Helper function to convert ISO 8601 to MySQL DATETIME format
+function toMySQLDateTime(isoString: string): string {
+  const date = new Date(isoString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
 // Get all records (optionally filtered by caregiver_id)
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -72,13 +84,17 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'caregiver_id, time, and event are required' })
     }
 
-    if (event !== '餵奶' && event !== '擠奶') {
-      return res.status(400).json({ message: 'event must be 餵奶 or 擠奶' })
+    const allowedEvents = ['餵奶', '擠奶', '大便', '小便']
+    if (!allowedEvents.includes(event)) {
+      return res.status(400).json({ message: 'event must be 餵奶, 擠奶, 大便 or 小便' })
     }
+
+    // Convert ISO 8601 to MySQL DATETIME format
+    const mysqlDateTime = toMySQLDateTime(time)
 
     const [result] = await pool.query<ResultSetHeader>(
       'INSERT INTO records (caregiver_id, time, event) VALUES (?, ?, ?)',
-      [caregiver_id, time, event]
+      [caregiver_id, mysqlDateTime, event]
     )
 
     res.json({ record_id: result.insertId ?? (result as any).insertId })
@@ -98,13 +114,17 @@ router.put('/:recordId', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'time and event are required' })
     }
 
-    if (event !== '餵奶' && event !== '擠奶') {
-      return res.status(400).json({ message: 'event must be 餵奶 or 擠奶' })
+    const allowedEvents = ['餵奶', '擠奶', '大便', '小便']
+    if (!allowedEvents.includes(event)) {
+      return res.status(400).json({ message: 'event must be 餵奶, 擠奶, 大便 or 小便' })
     }
+
+    // Convert ISO 8601 to MySQL DATETIME format
+    const mysqlDateTime = toMySQLDateTime(time)
 
     const [result] = await pool.query<ResultSetHeader>(
       'UPDATE records SET time = ?, event = ? WHERE record_id = ?',
-      [time, event, recordId]
+      [mysqlDateTime, event, recordId]
     )
 
     if (result.affectedRows === 0) {
