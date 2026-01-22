@@ -1,0 +1,8 @@
+name = "baby-record-worker"
+main = "src/worker.ts"
+compatibility_date = "2024-03-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "baby-record-db"
+database_id = "f9b145c8-10e4-4ede-947e-5cc6beb53da3"
